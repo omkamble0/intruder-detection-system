@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zero-Trust SOC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="antialiased h-screen flex overflow-hidden">
+
+    <aside class="w-64 glass-panel border-r border-slate-800/50 flex flex-col justify-between z-10">
+        <div>
+            <div class="p-6 border-b border-slate-800/50">
+                <h1 class="text-xl font-bold tracking-tight text-white">Zero-Trust <span class="neon-text">SOC</span></h1>
+            </div>
+            <nav class="p-4 space-y-3">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full text-left px-4 py-3 rounded-lg border border-transparent transition-all duration-200">
+                    <span class="mr-2">⚡</span> Live Node
+                </button>
+                <button onclick="switchTab('evidence')" id="btn-evidence" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-400 border border-transparent transition-all duration-200">
+                    <span class="mr-2">📂</span> Audit Logs
+                </button>
+                <button onclick="switchTab('config')" id="btn-config" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-400 border border-transparent transition-all duration-200">
+                    <span class="mr-2">⚙️</span> System Config
+                </button>
+            </nav>
+        </div>
+        
+        <div class="p-6">
+            <div class="flex items-center space-x-2 bg-black/50 px-4 py-2 rounded-full border border-green-500/30 w-max shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                <span class="text-xs font-semibold text-green-400 uppercase tracking-widest">Network Secure</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-grow p-8 overflow-y-auto relative bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]">
+        
+        <section id="tab-dashboard" class="tab-content tab-active max-w-5xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold text-white tracking-tight">Surveillance Matrix</h2>
+                    <p class="text-slate-500 text-sm mt-1 uppercase tracking-widest">Node ID: YOLOv8-Alpha</p>
+                </div>
+                <button id="camera-btn" onclick="toggleCamera()" class="px-6 py-2 rounded-lg font-bold text-white transition {% if camera_active %} bg-red-600/80 hover:bg-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 {% else %} bg-cyan-600/80 hover:bg-cyan-500 shadow-[0_0_15px_rgba(0,242,254,0.5)] border border-cyan-400 {% endif %}">
+                    {% if camera_active %} ⏹ Stop Node {% else %} ▶ Start Node {% endif %}
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="lg:col-span-2 glass-panel rounded-2xl overflow-hidden relative">
+                    <div class="absolute top-4 left-4 bg-black/60 backdrop-blur px-3 py-1 rounded text-xs font-mono text-cyan-400 border border-cyan-500/30 z-10">REC • LIVE</div>
+                    <img src="{{ url_for('video_feed') }}" class="w-full h-full object-cover min-h-[400px]" alt="Live Feed">
+                </div>
+                
+                <div class="flex flex-col gap-6">
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center text-center h-full">
+                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mb-2">Threats Detected</p>
+                        <p class="text-6xl font-bold text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">{{ total_logs }}</p>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center h-full">
+                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mb-4">Integrity Status</p>
+                        <div class="flex justify-between items-center border-b border-slate-700/50 pb-2 mb-2">
+                            <span class="text-sm text-slate-300">Database</span>
+                            <span class="text-sm text-green-400">Encrypted</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-300">Hashing</span>
+                            <span class="text-sm neon-text">SHA-256</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-evidence" class="tab-content max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold text-white tracking-tight">Cryptographic Ledger</h2>
+                <button onclick="window.location.reload()" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-4 py-2 rounded-lg font-semibold transition shadow-[0_0_10px_rgba(0,242,254,0.1)]">↻ Sync Ledger</button>
+            </div>
+            <div class="glass-panel rounded-2xl overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-black/40">
+                        <tr class="text-slate-400 text-xs uppercase tracking-widest">
+                            <th class="px-6 py-5 font-semibold">Target</th>
+                            <th class="px-6 py-5 font-semibold">Timestamp / Signature</th>
+                            <th class="px-6 py-5 font-semibold">Classification</th>
+                            <th class="px-6 py-5 font-semibold text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/50">
+                        {% for log in logs %}
+                        <tr id="log-row-{{ log[0] }}" class="hover:bg-slate-800/30 transition-colors">
+                            <td class="px-6 py-4">
+                                <img src="{{ url_for('static', filename='snapshots/' + log[4]) }}" 
+                                     class="h-14 w-14 rounded-lg object-cover border border-slate-700 cursor-pointer hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(0,242,254,0.4)] transition duration-300"
+                                     onclick="openModal(this.src)">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-slate-200 font-semibold">{{ log[1] }}</div>
+                                <div class="text-[10px] text-slate-500 hash-text mt-1 uppercase">{{ log[3][:32] }}...</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 inline-flex text-xs font-bold rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                                    🚨 {{ log[2] }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="deleteLog({{ log[0] }})" class="bg-transparent hover:bg-red-500/10 text-slate-500 hover:text-red-400 px-3 py-2 rounded transition border border-transparent hover:border-red-500/30">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="tab-config" class="tab-content max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-8 tracking-tight">System Parameters</h2>
+            <div class="glass-panel rounded-2xl p-8">
+                <h3 class="text-lg font-semibold text-white mb-2">Capture Frequency</h3>
+                <p class="text-slate-400 mb-8 text-sm">Adjust the AI cooldown rate between logging physical intrusions to manage storage loads.</p>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-slate-300 font-semibold text-sm uppercase tracking-widest">Rate Limit</span>
+                    <span id="cooldown-display" class="neon-text bg-cyan-500/10 border border-cyan-500/30 px-3 py-1 rounded font-mono">{{ current_cooldown }}s</span>
+                </div>
+                <input type="range" id="cooldown-slider" min="1" max="60" value="{{ current_cooldown }}" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer mb-2 accent-cyan-400" onchange="updateRateLimit(this.value)" oninput="document.getElementById('cooldown-display').innerText = this.value + 's'">
+                <div class="flex justify-between text-xs text-slate-500 mt-2 font-mono uppercase"><span>1s</span><span>60s</span></div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="image-modal" class="fixed inset-0 bg-black/95 hidden flex justify-center items-center z-50 opacity-0 transition-opacity duration-300 backdrop-blur-md" onclick="closeModal()">
+        <span class="absolute top-8 right-8 text-slate-500 text-5xl cursor-pointer hover:text-red-500 transition">&times;</span>
+        <img id="modal-img" class="max-w-[80%] max-h-[80%] rounded-2xl shadow-[0_0_50px_rgba(0,242,254,0.2)] border border-slate-700">
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

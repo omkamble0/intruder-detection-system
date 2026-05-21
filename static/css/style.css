@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap');
+
+/* Deep Cyberpunk Dark Mode */
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #050b14; /* Extremely dark blue/black */
+    color: #e2e8f0; 
+} 
+
+/* The Glassmorphism Effect */
+.glass-panel {
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 242, 254, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Neon Glows */
+.neon-text {
+    color: #00f2fe;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+.neon-border {
+    border-color: #00f2fe;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+}
+
+.hash-text { font-family: 'JetBrains Mono', monospace; }
+
+/* Custom Scrollbars */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #050b14; }
+::-webkit-scrollbar-thumb { background: #00f2fe; border-radius: 10px; }
+
+/* Smooth Tab Transitions */
+.tab-content { display: none; } 
+.tab-active { 
+    display: block; 
+    animation: fadeIn 0.4s ease-in-out; 
+}
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}

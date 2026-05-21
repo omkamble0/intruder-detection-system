@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SOC Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="antialiased h-screen flex items-center justify-center bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] relative overflow-hidden">
+    
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px]"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-[100px]"></div>
+
+    <div class="glass-panel p-10 rounded-2xl w-full max-w-md z-10 border border-slate-700/50 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Zero-Trust <span class="neon-text">SOC</span></h1>
+            <p class="text-slate-400 text-sm tracking-widest uppercase">Authorized Personnel Only</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-2 rounded text-sm text-center mb-6 font-semibold">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="POST" class="space-y-6">
+            <div>
+                <label class="block text-xs text-slate-400 font-semibold uppercase tracking-widest mb-2">Username</label>
+                <input type="text" name="username" required class="w-full bg-black/40 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_10px_rgba(0,242,254,0.2)] transition">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-400 font-semibold uppercase tracking-widest mb-2">Password</label>
+                <input type="password" name="password" required class="w-full bg-black/40 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_10px_rgba(0,242,254,0.2)] transition">
+            </div>
+            <button type="submit" class="w-full bg-cyan-600/80 hover:bg-cyan-500 border border-cyan-400 text-white font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(0,242,254,0.4)] transition duration-300 mt-4">
+                INITIALIZE SESSION
+            </button>
+        </form>
+    </div>
+</body>
+</html>
