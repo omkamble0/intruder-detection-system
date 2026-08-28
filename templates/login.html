@@ -2,44 +2,98 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SOC Authentication</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Hub - Terminal Access</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #050814;
+            background-image: radial-gradient(circle at 50% 50%, #0a1128 0%, #050814 100%);
+            color: white;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+    </style>
 </head>
-<body class="antialiased h-screen flex items-center justify-center bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] relative overflow-hidden">
-    
-    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px]"></div>
-    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-[100px]"></div>
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none opacity-20" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%239C92AC\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
 
-    <div class="glass-panel p-10 rounded-2xl w-full max-w-md z-10 border border-slate-700/50 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+    <div class="glass-panel w-full max-w-md rounded-2xl p-8 relative z-10 shadow-[0_0_40px_rgba(0,0,0,0.6)]">
+        
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Zero-Trust <span class="neon-text">SOC</span></h1>
-            <p class="text-slate-400 text-sm tracking-widest uppercase">Authorized Personnel Only</p>
+            <h1 class="text-3xl font-extrabold tracking-tight mb-2 text-white">
+                Security<span class="text-cyan-400">Hub</span>
+            </h1>
+            <p class="text-xs text-slate-400 tracking-[0.2em] uppercase font-semibold">Authorized Personnel Only</p>
         </div>
 
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             {% for message in messages %}
-              <div class="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-2 rounded text-sm text-center mb-6 font-semibold">
+              <div class="bg-red-900/40 border border-red-500/50 text-red-200 text-sm px-4 py-3 rounded-lg mb-6 text-center shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                 {{ message }}
               </div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
-        <form action="/login" method="POST" class="space-y-6">
-            <div>
-                <label class="block text-xs text-slate-400 font-semibold uppercase tracking-widest mb-2">Username</label>
-                <input type="text" name="username" required class="w-full bg-black/40 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_10px_rgba(0,242,254,0.2)] transition">
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" id="action-input" name="action" value="login">
+            
+            <div class="mb-5">
+                <label class="block text-xs text-slate-400 font-bold tracking-widest mb-2 uppercase" id="email-label">Email Address</label>
+                <input type="email" id="username" name="username" placeholder="Enter your email (e.g. name@gmail.com)" required
+                    class="w-full bg-black/40 border border-slate-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,242,254,0.3)] transition">
             </div>
-            <div>
-                <label class="block text-xs text-slate-400 font-semibold uppercase tracking-widest mb-2">Password</label>
-                <input type="password" name="password" required class="w-full bg-black/40 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_10px_rgba(0,242,254,0.2)] transition">
+            
+            <div class="mb-8">
+                <label class="block text-xs text-slate-400 font-bold tracking-widest mb-2 uppercase">Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required minlength="6"
+                    class="w-full bg-black/40 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,242,254,0.3)] transition text-xl tracking-widest">
             </div>
-            <button type="submit" class="w-full bg-cyan-600/80 hover:bg-cyan-500 border border-cyan-400 text-white font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(0,242,254,0.4)] transition duration-300 mt-4">
-                INITIALIZE SESSION
+            
+            <button type="submit" id="submit-btn" class="w-full bg-cyan-600/90 hover:bg-cyan-500 border border-cyan-400 text-white font-bold py-3 px-4 rounded-lg shadow-[0_0_15px_rgba(0,242,254,0.4)] transition duration-300 uppercase tracking-wider text-sm mb-6">
+                Initialize Session
             </button>
         </form>
+
+        <div class="text-center">
+            <button type="button" onclick="toggleMode()" id="toggle-btn" class="text-xs text-slate-400 hover:text-cyan-400 transition cursor-pointer bg-transparent border-none">
+                Need clearance? Request Access.
+            </button>
+        </div>
     </div>
+
+    <script>
+        let isLogin = true;
+        
+        function toggleMode() {
+            isLogin = !isLogin;
+            const actionInput = document.getElementById('action-input');
+            const submitBtn = document.getElementById('submit-btn');
+            const toggleBtn = document.getElementById('toggle-btn');
+            const emailInput = document.getElementById('username');
+            const emailLabel = document.getElementById('email-label');
+            
+            if (isLogin) {
+                actionInput.value = 'login';
+                submitBtn.innerText = 'Initialize Session';
+                toggleBtn.innerText = 'Need clearance? Request Access.';
+                emailLabel.innerText = 'Email Address';
+                emailInput.placeholder = 'Enter your email (e.g. name@gmail.com)';
+            } else {
+                actionInput.value = 'register';
+                submitBtn.innerText = 'Register Operative';
+                toggleBtn.innerText = 'Already have clearance? Return to Login.';
+                emailLabel.innerText = 'Register New Email';
+                emailInput.placeholder = 'Register new email (e.g. name@gmail.com)';
+            }
+        }
+    </script>
 </body>
 </html>

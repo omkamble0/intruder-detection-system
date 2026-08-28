@@ -2,143 +2,263 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zero-Trust SOC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOLIATH | Threat Detection Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #030712;
+            background-image: linear-gradient(rgba(15, 23, 42, 0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.8) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: #f8fafc;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .glass-panel {
+            background: rgba(3, 7, 18, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        .neon-border-top { border-top: 2px solid #06b6d4; }
+        .reticle-overlay {
+            background-image: linear-gradient(to right, rgba(6, 182, 212, 0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(6, 182, 212, 0.2) 1px, transparent 1px);
+            background-size: 10% 10%;
+            background-position: center center;
+        }
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+    </style>
 </head>
-<body class="antialiased h-screen flex overflow-hidden">
+<body class="min-h-screen flex flex-col relative overflow-hidden selection:bg-cyan-500 selection:text-white">
 
-    <aside class="w-64 glass-panel border-r border-slate-800/50 flex flex-col justify-between z-10">
-        <div>
-            <div class="p-6 border-b border-slate-800/50">
-                <h1 class="text-xl font-bold tracking-tight text-white">Zero-Trust <span class="neon-text">SOC</span></h1>
-            </div>
-            <nav class="p-4 space-y-3">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full text-left px-4 py-3 rounded-lg border border-transparent transition-all duration-200">
-                    <span class="mr-2">⚡</span> Live Node
-                </button>
-                <button onclick="switchTab('evidence')" id="btn-evidence" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-400 border border-transparent transition-all duration-200">
-                    <span class="mr-2">📂</span> Audit Logs
-                </button>
-                <button onclick="switchTab('config')" id="btn-config" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-400 border border-transparent transition-all duration-200">
-                    <span class="mr-2">⚙️</span> System Config
-                </button>
-            </nav>
+    <header class="border-b border-slate-800 bg-slate-950/80 p-3 z-50 backdrop-blur-md flex justify-between items-center px-6">
+        <div class="flex items-center gap-4">
+            <div class="h-4 w-4 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_10px_rgba(6,182,212,0.8)]"></div>
+            <h1 class="text-2xl font-bold tracking-widest text-white uppercase"><span class="text-cyan-500">GOLIATH</span> // Engine</h1>
         </div>
-        
-        <div class="p-6">
-            <div class="flex items-center space-x-2 bg-black/50 px-4 py-2 rounded-full border border-green-500/30 w-max shadow-[0_0_10px_rgba(34,197,94,0.2)]">
-                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
-                <span class="text-xs font-semibold text-green-400 uppercase tracking-widest">Network Secure</span>
-            </div>
+        <div class="flex gap-6 items-center">
+            <div class="text-xs font-mono text-cyan-400 border border-cyan-900 bg-cyan-950/30 px-3 py-1 rounded" id="system-clock">00:00:00 UTC</div>
         </div>
-    </aside>
+    </header>
 
-    <main class="flex-grow p-8 overflow-y-auto relative bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]">
+    <main class="flex-1 p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 z-10 overflow-y-auto">
         
-        <section id="tab-dashboard" class="tab-content tab-active max-w-5xl mx-auto">
-            <div class="flex justify-between items-center mb-8">
+        <div class="lg:col-span-3 space-y-4">
+            <div class="flex justify-between items-end">
                 <div>
-                    <h2 class="text-3xl font-bold text-white tracking-tight">Surveillance Matrix</h2>
-                    <p class="text-slate-500 text-sm mt-1 uppercase tracking-widest">Node ID: YOLOv8-Alpha</p>
+                    <h2 class="text-lg font-bold text-white tracking-widest uppercase">Surveillance Viewport</h2>
+                    <p class="text-[10px] text-slate-500 font-mono tracking-widest uppercase mt-1">Optical Threat Detection Matrix (ByteTrack Engine)</p>
                 </div>
-                <button id="camera-btn" onclick="toggleCamera()" class="px-6 py-2 rounded-lg font-bold text-white transition {% if camera_active %} bg-red-600/80 hover:bg-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 {% else %} bg-cyan-600/80 hover:bg-cyan-500 shadow-[0_0_15px_rgba(0,242,254,0.5)] border border-cyan-400 {% endif %}">
-                    {% if camera_active %} ⏹ Stop Node {% else %} ▶ Start Node {% endif %}
+                <div class="flex gap-2">
+                    <span class="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">FPS: <span id="fps-counter" class="text-white font-bold">60</span></span>
+                    <span class="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">AI Latency: <span id="latency-counter" class="text-emerald-400 font-bold">18ms</span></span>
+                    <span class="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">Targets: <span id="target-counter" class="text-cyan-400 font-bold">0</span></span>
+                    <span class="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">Intruders: <span id="intruder-counter" class="text-red-500 font-bold">0</span></span>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-lg overflow-hidden border border-slate-700 shadow-[0_0_30px_rgba(0,0,0,0.8)] relative aspect-video flex items-center justify-center bg-black neon-border-top group">
+                <img id="server-video-feed" src="/video_feed" class="w-full h-full object-contain">
+                <div class="absolute inset-0 reticle-overlay opacity-20 pointer-events-none z-30"></div>
+                <div class="scanlines absolute inset-0 z-40"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button id="btn-active" onclick="setThreatMode('active')" class="py-3 rounded-lg bg-red-900/40 text-red-400 border border-red-500 text-xs font-mono font-bold uppercase tracking-widest transition shadow-[0_0_15px_rgba(220,38,38,0.2)] cursor-pointer">
+                    [ON] IDS Mode: Active (Red Alert)
+                </button>
+                <button id="btn-passive" onclick="setThreatMode('passive')" class="py-3 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:border-emerald-500 hover:text-emerald-400 text-xs font-mono font-bold uppercase tracking-widest transition cursor-pointer">
+                    [OFF] Passive Tracking (Green)
                 </button>
             </div>
+        </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <div class="lg:col-span-2 glass-panel rounded-2xl overflow-hidden relative">
-                    <div class="absolute top-4 left-4 bg-black/60 backdrop-blur px-3 py-1 rounded text-xs font-mono text-cyan-400 border border-cyan-500/30 z-10">REC • LIVE</div>
-                    <img src="{{ url_for('video_feed') }}" class="w-full h-full object-cover min-h-[400px]" alt="Live Feed">
+        <div class="space-y-6">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800 pb-2">Deployment Modules</h3>
+
+            <div class="glass-panel p-4 rounded-lg border-l-2 border-l-cyan-500">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">01. Local Optical</h4>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">ByteTrack AI</span>
                 </div>
-                
-                <div class="flex flex-col gap-6">
-                    <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center text-center h-full">
-                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mb-2">Threats Detected</p>
-                        <p class="text-6xl font-bold text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">{{ total_logs }}</p>
-                    </div>
-                    <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center h-full">
-                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mb-4">Integrity Status</p>
-                        <div class="flex justify-between items-center border-b border-slate-700/50 pb-2 mb-2">
-                            <span class="text-sm text-slate-300">Database</span>
-                            <span class="text-sm text-green-400">Encrypted</span>
+                <div class="flex gap-2 mt-4">
+                    <button onclick="launchBayNode('local')" class="flex-1 py-2 rounded bg-cyan-900/30 border border-cyan-800 hover:bg-cyan-800 text-cyan-300 text-[10px] font-mono font-bold tracking-widest transition uppercase cursor-pointer">Connect</button>
+                    <button onclick="terminateActiveBay()" class="flex-1 py-2 rounded bg-slate-800 border border-slate-700 hover:bg-red-900 text-slate-400 hover:text-red-300 text-[10px] font-mono font-bold tracking-widest transition uppercase cursor-pointer">Stop</button>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 rounded-lg border-l-2 border-l-slate-600">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">02. Network Pipeline</h4>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">RTSP / IP</span>
+                </div>
+                <input type="text" id="ip-url" placeholder="http://192.168.1.X:8080/video" class="w-full bg-black/50 border border-slate-700 rounded px-2 py-1.5 text-[10px] font-mono text-white focus:border-cyan-500 outline-none my-3">
+                <div class="flex gap-2">
+                    <button onclick="launchBayNode('ip')" class="flex-1 py-2 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 text-[10px] font-mono font-bold tracking-widest transition uppercase cursor-pointer">Connect</button>
+                    <button onclick="terminateActiveBay()" class="flex-1 py-2 rounded bg-slate-800 border border-slate-700 hover:bg-red-900 text-slate-400 hover:text-red-300 text-[10px] font-mono font-bold tracking-widest transition uppercase cursor-pointer">Stop</button>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 rounded-lg border-l-2 border-l-purple-500">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">03. Target Sim</h4>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">Simulation</span>
+                </div>
+                <div class="flex gap-2 mt-4">
+                    <button onclick="launchBayNode('sim')" class="flex-1 py-2 rounded bg-purple-900/30 border border-purple-800 hover:bg-purple-800 text-purple-300 text-[10px] font-mono font-bold tracking-widest transition uppercase cursor-pointer">Play Sim</button>
+                    <button onclick="terminateActiveBay()" class="flex-1 py-2 rounded bg-slate-800 border border-slate-700 hover:bg-red-900 text-slate-400 hover:text-red-300 text-[10px] font-mono font-bold tracking-widest transition uppercase cursor-pointer">Stop</button>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl space-y-4 bg-black/30">
+                <h2 class="text-[10px] font-mono font-bold tracking-wide text-slate-500 border-b border-slate-800 pb-2 uppercase">Zone Calibration</h2>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+                            <span>Zone Scale</span><span id="zone-val">100%</span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-slate-300">Hashing</span>
-                            <span class="text-sm neon-text">SHA-256</span>
+                        <input type="range" id="cal-zone" min="10" max="150" value="100" oninput="syncCalibration()" class="w-full accent-cyan-400 h-1 bg-slate-800 appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+                            <span>Y Offset</span><span id="y-val">0</span>
                         </div>
+                        <input type="range" id="cal-y" min="-150" max="150" value="0" oninput="syncCalibration()" class="w-full accent-cyan-400 h-1 bg-slate-800 appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+                            <span>X Offset</span><span id="x-val">0</span>
+                        </div>
+                        <input type="range" id="cal-x" min="-150" max="150" value="0" oninput="syncCalibration()" class="w-full accent-cyan-400 h-1 bg-slate-800 appearance-none cursor-pointer">
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section id="tab-evidence" class="tab-content max-w-7xl mx-auto">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold text-white tracking-tight">Cryptographic Ledger</h2>
-                <button onclick="window.location.reload()" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-4 py-2 rounded-lg font-semibold transition shadow-[0_0_10px_rgba(0,242,254,0.1)]">↻ Sync Ledger</button>
-            </div>
-            <div class="glass-panel rounded-2xl overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-black/40">
-                        <tr class="text-slate-400 text-xs uppercase tracking-widest">
-                            <th class="px-6 py-5 font-semibold">Target</th>
-                            <th class="px-6 py-5 font-semibold">Timestamp / Signature</th>
-                            <th class="px-6 py-5 font-semibold">Classification</th>
-                            <th class="px-6 py-5 font-semibold text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/50">
-                        {% for log in logs %}
-                        <tr id="log-row-{{ log[0] }}" class="hover:bg-slate-800/30 transition-colors">
-                            <td class="px-6 py-4">
-                                <img src="{{ url_for('static', filename='snapshots/' + log[4]) }}" 
-                                     class="h-14 w-14 rounded-lg object-cover border border-slate-700 cursor-pointer hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(0,242,254,0.4)] transition duration-300"
-                                     onclick="openModal(this.src)">
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-slate-200 font-semibold">{{ log[1] }}</div>
-                                <div class="text-[10px] text-slate-500 hash-text mt-1 uppercase">{{ log[3][:32] }}...</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-3 py-1 inline-flex text-xs font-bold rounded bg-red-500/10 text-red-400 border border-red-500/20">
-                                    🚨 {{ log[2] }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <button onclick="deleteLog({{ log[0] }})" class="bg-transparent hover:bg-red-500/10 text-slate-500 hover:text-red-400 px-3 py-2 rounded transition border border-transparent hover:border-red-500/30">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="tab-config" class="tab-content max-w-3xl mx-auto">
-            <h2 class="text-3xl font-bold text-white mb-8 tracking-tight">System Parameters</h2>
-            <div class="glass-panel rounded-2xl p-8">
-                <h3 class="text-lg font-semibold text-white mb-2">Capture Frequency</h3>
-                <p class="text-slate-400 mb-8 text-sm">Adjust the AI cooldown rate between logging physical intrusions to manage storage loads.</p>
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-slate-300 font-semibold text-sm uppercase tracking-widest">Rate Limit</span>
-                    <span id="cooldown-display" class="neon-text bg-cyan-500/10 border border-cyan-500/30 px-3 py-1 rounded font-mono">{{ current_cooldown }}s</span>
+            <div class="glass-panel p-4 rounded-lg bg-black/40">
+                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">Engine Diagnostics</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-slate-400 font-mono">Engine Status</span>
+                        <span id="engine-status" class="text-[10px] text-emerald-400 font-mono font-bold">ONLINE (BYTETRACK-v1)</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-slate-400 font-mono">Tracking Model</span>
+                        <span class="text-[10px] text-slate-400 font-mono">YOLOv8 + KALMAN 8D</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-slate-400 font-mono">Pipeline Architecture</span>
+                        <span class="text-[10px] text-cyan-400 font-mono">DECOUPLED 60FPS THREADS</span>
+                    </div>
                 </div>
-                <input type="range" id="cooldown-slider" min="1" max="60" value="{{ current_cooldown }}" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer mb-2 accent-cyan-400" onchange="updateRateLimit(this.value)" oninput="document.getElementById('cooldown-display').innerText = this.value + 's'">
-                <div class="flex justify-between text-xs text-slate-500 mt-2 font-mono uppercase"><span>1s</span><span>60s</span></div>
             </div>
-        </section>
-
+        </div>
     </main>
 
-    <div id="image-modal" class="fixed inset-0 bg-black/95 hidden flex justify-center items-center z-50 opacity-0 transition-opacity duration-300 backdrop-blur-md" onclick="closeModal()">
-        <span class="absolute top-8 right-8 text-slate-500 text-5xl cursor-pointer hover:text-red-500 transition">&times;</span>
-        <img id="modal-img" class="max-w-[80%] max-h-[80%] rounded-2xl shadow-[0_0_50px_rgba(0,242,254,0.2)] border border-slate-700">
-    </div>
+    <script>
+        let threatMode = 'active';
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        window.addEventListener('DOMContentLoaded', () => {
+            setInterval(() => {
+                document.getElementById('system-clock').innerText = new Date().toISOString().replace('T', ' ').substring(0, 19) + " UTC";
+            }, 1000);
+            
+            // Poll real-time tracking metrics from server pipeline
+            setInterval(fetchMetrics, 300);
+        });
+
+        async function fetchMetrics() {
+            try {
+                const res = await fetch('/api/camera_metrics');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('target-counter').innerText = data.targets || 0;
+                    document.getElementById('intruder-counter').innerText = data.intruders || 0;
+                    if (data.latency_ms > 0) {
+                        document.getElementById('latency-counter').innerText = `${data.latency_ms}ms`;
+                    }
+                    if (data.active) {
+                        document.getElementById('engine-status').innerText = `ACTIVE (${(data.source || '').toUpperCase()})`;
+                        document.getElementById('engine-status').className = "text-[10px] text-emerald-400 font-mono font-bold";
+                    }
+                }
+            } catch (e) {}
+        }
+
+        async function syncCalibration() {
+            const zone = parseInt(document.getElementById('cal-zone').value);
+            const y_offset = parseInt(document.getElementById('cal-y').value);
+            const x_offset = parseInt(document.getElementById('cal-x').value);
+
+            document.getElementById('zone-val').innerText = zone + "%";
+            document.getElementById('y-val').innerText = y_offset;
+            document.getElementById('x-val').innerText = x_offset;
+
+            await fetch('/api/calibrate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ zone, y_offset, x_offset })
+            });
+        }
+
+        async function setThreatMode(mode) {
+            threatMode = mode;
+            const btnActive = document.getElementById('btn-active');
+            const btnPassive = document.getElementById('btn-passive');
+            
+            if (mode === 'active') {
+                btnActive.className = "py-3 rounded-lg bg-red-900/40 text-red-400 border border-red-500 text-xs font-mono font-bold uppercase tracking-widest transition shadow-[0_0_15px_rgba(220,38,38,0.2)] cursor-pointer";
+                btnPassive.className = "py-3 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:border-emerald-500 hover:text-emerald-400 text-xs font-mono font-bold uppercase tracking-widest transition cursor-pointer";
+            } else {
+                btnPassive.className = "py-3 rounded-lg bg-emerald-900/40 text-emerald-400 border border-emerald-500 text-xs font-mono font-bold uppercase tracking-widest transition shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer";
+                btnActive.className = "py-3 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:border-red-500 hover:text-red-400 text-xs font-mono font-bold uppercase tracking-widest transition cursor-pointer";
+            }
+
+            await fetch('/api/camera', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action: 'update_threat', threat_mode: mode === 'active' })
+            });
+        }
+
+        async function launchBayNode(sourceType) {
+            const feed = document.getElementById('server-video-feed');
+            let streamUrl = '0';
+            if (sourceType === 'ip') {
+                streamUrl = document.getElementById('ip-url').value.trim();
+            }
+
+            const res = await fetch('/api/camera', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action: 'start', source_type: sourceType, url: streamUrl })
+            });
+            const data = await res.json();
+            if (data.active) {
+                // Refresh MJPEG stream connection
+                feed.src = '/video_feed?' + new Date().getTime();
+            } else if (data.error) {
+                alert(data.error);
+            }
+        }
+
+        async function terminateActiveBay() {
+            await fetch('/api/camera', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action: 'stop' })
+            });
+            document.getElementById('target-counter').innerText = "0";
+            document.getElementById('intruder-counter').innerText = "0";
+            document.getElementById('latency-counter').innerText = "--";
+            document.getElementById('engine-status').innerText = "STANDBY";
+            document.getElementById('engine-status').className = "text-[10px] text-yellow-500 font-mono";
+            
+            const feed = document.getElementById('server-video-feed');
+            feed.src = '/video_feed?' + new Date().getTime();
+        }
+    </script>
 </body>
 </html>

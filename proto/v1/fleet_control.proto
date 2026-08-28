@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package goliath.fleet.v1;
+
+enum NodeStatus {
+  NODE_STATUS_UNSPECIFIED = 0;
+  NODE_STATUS_PROVISIONING = 1;
+  NODE_STATUS_HEALTHY = 2;
+  NODE_STATUS_DEGRADED = 3;
+  NODE_STATUS_UPDATING = 4;
+  NODE_STATUS_OFFLINE = 5;
+}
+
+enum ThreatLevel {
+  THREAT_LEVEL_NONE = 0;
+  THREAT_LEVEL_SUSPICIOUS = 1;
+  THREAT_LEVEL_CRITICAL_INTRUSION = 2;
+}
+
+message HardwareProfile {
+  string arch = 1;              // e.g. "x86_64", "arm64", "wasm32"
+  string accelerator = 2;       // e.g. "webgl", "webgpu", "cuda_12_2", "cpu"
+  uint32 total_ram_mb = 3;
+  uint32 available_ram_mb = 4;
+  float compute_score = 5;      // Normalized benchmark score
+}
+
+message NodeRegistrationRequest {
+  string node_id = 1;
+  string cluster_id = 2;
+  string firmware_version = 3;
+  string active_model_version = 4;
+  HardwareProfile hardware = 5;
+  map<string, string> tags = 6;
+}
+
+message NodeRegistrationResponse {
+  bool registered = 1;
+  string session_token = 2;
+  uint32 heartbeat_interval_ms = 3;
+  string assigned_model_version = 4;
+  string model_manifest_url = 5;
+  string message = 6;
+}
+
+message HeartbeatMessage {
+  string node_id = 1;
+  string session_token = 2;
+  int64 timestamp_utc_epoch_ms = 3;
+  NodeStatus status = 4;
+  float inference_fps = 5;
+  float inference_latency_ms = 6;
+  float memory_usage_mb = 7;
+  uint32 active_tracks_count = 8;
+  uint32 total_detections_since_last = 9;
+}
+
+message CommandDirective {
+  string directive_id = 1;
+  enum Action {
+    ACTION_NOOP = 0;
+    ACTION_RESTART_INFERENCE = 1;
+    ACTION_HOT_SWAP_MODEL = 2;
+    ACTION_UPDATE_CONFIG = 3;
+    ACTION_TRIGGER_DIAGNOSTICS = 4;
+  }
+  Action action = 2;
+  string target_model_version = 3;
+  string target_model_manifest_url = 4;
+  string config_payload_json = 5;
+}
+
+message DetectionEvent {
+  int64 timestamp_epoch_ms = 1;
+  uint32 track_id = 2;
+  string class_name = 3;
+  float confidence = 4;
+  repeated float bbox = 5;       // [x_min, y_min, x_max, y_max] normalized 0..1
+  ThreatLevel threat_level = 6;
+  bool in_restricted_zone = 7;
+  bytes optional_snapshot_jpeg = 8;
+}
+
+message TelemetryBatch {
+  string node_id = 1;
+  string session_token = 2;
+  int64 batch_sequence_id = 3;
+  repeated DetectionEvent events = 4;
+}
+
+message TelemetryAck {
+  int64 batch_sequence_id = 1;
+  bool success = 2;
+  string error_message = 3;
+  int64 server_received_time_ms = 4;
+}
+
+service FleetControlService {
+  rpc RegisterNode(NodeRegistrationRequest) returns (NodeRegistrationResponse);
+  rpc StreamControl(stream HeartbeatMessage) returns (stream CommandDirective);
+  rpc StreamTelemetry(stream TelemetryBatch) returns (stream TelemetryAck);
+}

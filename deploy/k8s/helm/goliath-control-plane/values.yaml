@@ -1,0 +1,50 @@
+replicaCount: 3
+
+image:
+  repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/goliath/control-plane
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+service:
+  type: ClusterIP
+  grpcPort: 50051
+  metricsPort: 9090
+
+envoy:
+  enabled: true
+  replicas: 2
+  image: envoyproxy/envoy:v1.28-latest
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "external"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+env:
+  STORAGE_ROOT: "/var/goliath/models"
+  AWS_REGION: "us-east-1"
+  KAFKA_BROKERS: "kafka-cluster-kafka-bootstrap.kafka.svc:9092"
+  REDIS_HOST: "redis-cluster.cache.svc"
+  REDIS_PORT: "6379"
+
+persistence:
+  enabled: true
+  storageClass: "gp3"
+  accessMode: ReadWriteOnce
+  size: 50Gi
